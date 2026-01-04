@@ -1,21 +1,15 @@
 :root {
   --bg: #0f1115;
-  --card: #1a1f2a;
-  --card2: #22293a;
   --text: #e7e7f9;
   --muted: #a9b1c6;
-  --accent: #f3f4f6;
   --shadow: 0 18px 40px rgba(0, 0, 0, .35);
   --radius: 18px;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 /* чтобы фон не обрезался */
-html,
-body {
+html, body {
   height: 100%;
   min-height: 100vh;
   margin: 0;
@@ -40,48 +34,12 @@ body {
 }
 
 .top h1 {
-  margin: 8px 0 2px;
-  font-size: 26px;
+  margin: 8px 0 14px;
+  font-size: 28px;
+  letter-spacing: .2px;
 }
 
-.sub {
-  margin: 0 0 14px;
-  color: var(--muted);
-}
-
-.topRow {
-  position: relative;
-}
-
-.panel {
-  background: rgba(255, 255, 255, .04);
-  border: 1px solid rgba(255, 255, 255, .08);
-  padding: 12px;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  margin-bottom: 14px;
-}
-
-.row {
-  display: flex;
-  gap: 10px;
-  margin: 8px 0;
-}
-
-.input {
-  flex: 1;
-  padding: 12px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, .10);
-  background: rgba(0, 0, 0, .25);
-  color: var(--text);
-  outline: none;
-}
-
-.input.small {
-  flex: 0 0 48%;
-}
-
+/* кнопки */
 .btn {
   border: 0;
   border-radius: 14px;
@@ -95,8 +53,6 @@ body {
   background: #ffffff;
   color:#111;
   box-shadow: 0 10px 22px rgba(255,255,255,.10);
-
-  /* 👇 новое */
   padding: 18px 16px;
   font-size: 20px;
   font-weight: 750;
@@ -110,93 +66,55 @@ body {
   border: 1px solid rgba(255, 255, 255, .12);
 }
 
-.btn.ghost.danger {
-  border-color: rgba(255, 120, 120, .35);
-  color: #ffd3d3;
-}
+.drumWrap { margin: 8px 0 20px; }
 
-/* маленькая почти незаметная кнопка настроек */
-.toggleSettings {
-  position: absolute;
-  top: 6px;
-  right: 0px;
-
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-
-  display: grid;
-  place-items: center;
-
-  background: rgba(255, 255, 255, .06);
-  border: 1px solid rgba(255, 255, 255, .10);
-  color: rgba(243, 246, 255, .85);
-
-  opacity: .35;
-  cursor: pointer;
-
-  transition: opacity .15s ease, transform .15s ease, background .15s ease;
-}
-
-.toggleSettings:hover {
-  opacity: .8;
-  background: rgba(255, 255, 255, .10);
-  transform: scale(1.03);
-}
-
-.toggleSettings:active {
-  transform: scale(.98);
-}
-
-.toggleSettings span {
-  font-size: 16px;
-  line-height: 1;
-}
-
-/* компактный режим */
-.compact .panel,
-.compact .list {
-  display: none;
-}
-
-.compact .sub {
-  display: none;
-}
-
-.drumWrap {
-  margin: 14px 0 20px;
-}
-
-/* барабан повыше */
+/* окно барабана */
 .drumWindow {
   position: relative;
-  height: 420px;
+  height: 460px;
   overflow: hidden;
   border-radius: 22px;
   background: rgba(255, 255, 255, .03);
   box-shadow: var(--shadow);
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
+/* стрелка */
 .pointer{
   position: absolute;
-  right: -2px;            /* чуть за край, чтобы “прилипло” к экрану */
+  right: -2px;
   top: 50%;
   transform: translateY(-50%);
   width: 44px;
   height: 28px;
-  z-index: 999;
+  z-index: 20;
 
   background-repeat: no-repeat;
   background-size: 100% 100%;
   filter: drop-shadow(0 10px 22px rgba(0, 0, 0, .35));
-
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='28' viewBox='0 0 44 28'%3E%3Cpath d='M0 14L36 2q7-2 6 6v12q1 8-6 6L0 14Z' fill='white'/%3E%3C/svg%3E");
   opacity: .95;
   pointer-events: none;
+
+  /* стрелка влево */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='28' viewBox='0 0 44 28'%3E%3Cpath d='M0 14L36 2q7-2 6 6v12q1 8-6 6L0 14Z' fill='white'/%3E%3C/svg%3E");
 }
 
-
+/* градиентные фейды сверху/снизу */
+.fadeTop, .fadeBottom{
+  position:absolute;
+  left:0; right:0;
+  height: 90px;
+  z-index: 10;
+  pointer-events:none;
+}
+.fadeTop{
+  top:0;
+  background: linear-gradient(180deg, rgba(15,17,21,.85), rgba(15,17,21,0));
+}
+.fadeBottom{
+  bottom:0;
+  background: linear-gradient(0deg, rgba(15,17,21,.85), rgba(15,17,21,0));
+}
 
 .drum {
   position: absolute;
@@ -207,7 +125,7 @@ body {
   will-change: transform;
 }
 
-/* ✅ пастельные карточки + “глубина” (JS будет менять opacity/scaleX) */
+/* карточки */
 .card {
   --card-bg: rgba(255, 255, 255, .06);
 
@@ -215,22 +133,19 @@ body {
   align-items: center;
   gap: 12px;
   margin: 10px 14px;
-  padding: 14px 14px;
-  border-radius: 18px;
+  padding: 16px 16px;
+  border-radius: 20px;
+
   color: #111;
 
-  /* пастельная заливка + мягкая “стеклянная” подсветка сверху */
   background:
     linear-gradient(180deg, rgba(255, 255, 255, .20), rgba(255, 255, 255, .06)),
     var(--card-bg);
 
   border: 1px solid rgba(255, 255, 255, .10);
-
-  /* чтобы “сужение” выглядело как перспективное */
   transform-origin: center center;
 
-  /* легкая плавность, чтобы не дергалось */
-  transition: transform 80ms linear, opacity 80ms linear;
+  transition: transform 90ms linear, opacity 90ms linear;
 }
 
 .spinning .card{
@@ -238,85 +153,45 @@ body {
 }
 
 .icon {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   display: grid;
   place-items: center;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 1);
+  border-radius: 16px;
+  background: #fff;
   font-size: 22px;
 }
 
-.meta {
-  flex: 1;
-}
+.meta { flex: 1; }
 
 .title {
-  font-size: 18px;
-  font-weight: 750;
+  font-size: 22px;
+  font-weight: 800;
   margin: 0;
 }
 
 .badge {
   margin-top: 4px;
-  color: var(--muted);
-  font-size: 13px;
+  color: rgba(0,0,0,.55);
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.highlight {
+.highlight{
   outline: 2px solid rgba(255, 255, 255, .9);
   box-shadow: 0 0 0 6px rgba(255, 255, 255, .08);
 }
 
-.result {
+.result{
   margin-top: 10px;
   color: var(--muted);
   text-align: center;
-  min-height: 20px;
-}
-
-.list h2 {
-  margin: 16px 0 8px;
+  min-height: 22px;
   font-size: 18px;
-  color: var(--accent);
 }
 
-.listGrid {
-  display: grid;
-  gap: 10px;
-}
-
-.smallCard {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, .05);
-  border: 1px solid rgba(255, 255, 255, .09);
-}
-
-.smallCard .t {
-  font-weight: 700;
-}
-
-.smallCard .b {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.smallCard button {
-  margin-left: auto;
-  background: rgba(255, 255, 255, .10);
-  border: 1px solid rgba(255, 255, 255, .12);
-  color: var(--text);
-  border-radius: 12px;
-  padding: 8px 10px;
-  cursor: pointer;
-}
-
-/* overlay на весь экран */
-.winCard {
+/* WIN MODAL overlay */
+.winCard{
   position: fixed;
   inset: 0;
   z-index: 2000;
@@ -324,7 +199,6 @@ body {
   display: grid;
   place-items: center;
 
-  /* затемнение фона */
   background: rgba(0, 0, 0, .55);
   backdrop-filter: blur(6px);
 
@@ -335,8 +209,7 @@ body {
   display: none !important;
 }
 
-/* сама карточка */
-.winCardInner {
+.winCardInner{
   width: min(520px, 100%);
   border-radius: 22px;
   overflow: hidden;
@@ -348,53 +221,47 @@ body {
   color: #111;
 }
 
-
-
-.winIcon {
-  width: 72px;
-  height: 72px;
+.winIcon{
+  width: 80px;
+  height: 80px;
   margin: 6px auto 14px;
   border-radius: 999px;
   display: grid;
   place-items: center;
-  font-size: 34px;
-  background: rgba(255, 255, 255, .85);
+  font-size: 38px;
+  background: rgba(255, 255, 255, .90);
 }
 
-.winBadge {
-  font-size: 54px;
-  font-weight: 800;
+.winBadge{
+  font-size: 58px;
+  font-weight: 900;
   margin: 4px 0 6px;
 }
 
-.winTitle {
+.winTitle{
   font-size: 24px;
-  font-weight: 750;
-  margin: 0 0 10px;
+  font-weight: 800;
+  margin: 0 0 8px;
 }
 
-.winDesc {
+.winDesc{
   font-size: 14px;
   opacity: .8;
-  margin: 0 0 12px;
+  margin: 0 0 4px;
 }
 
-/* кнопки под карточкой */
-.winActions {
+.winActions{
   width: min(520px, 100%);
   display: flex;
   gap: 12px;
   margin-top: 12px;
 }
 
+.winActions .btn{ flex: 1; }
 
-.winActions .btn {
-  flex: 1;
-}
-
-.btnSub {
-  display: block;
-  font-weight: 600;
+.btnSub{
+  display:block;
+  font-weight: 650;
   opacity: .7;
   margin-top: 2px;
 }

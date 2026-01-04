@@ -1,263 +1,104 @@
-const LS_KEY = "fortune_drum_options_v1";
-const VIEW_KEY = "fortune_drum_compact_v1";
-
 const drumEl = document.getElementById("drum");
-const listEl = document.getElementById("list");
 const resultEl = document.getElementById("result");
-
-const textEl = document.getElementById("text");
-const emojiEl = document.getElementById("emoji");
-const badgeEl = document.getElementById("badge");
-
-const addBtn = document.getElementById("add");
-const resetBtn = document.getElementById("reset");
 const spinBtn = document.getElementById("spin");
-const toggleViewBtn = document.getElementById("toggleView");
 
 const winCardEl = document.getElementById("winCard");
 const winIconEl = document.getElementById("winIcon");
 const winBadgeEl = document.getElementById("winBadge");
 const winTitleEl = document.getElementById("winTitle");
 const winDescEl = document.getElementById("winDesc");
-const winLinkEl = document.getElementById("winLink");
-
 const spinMoreBtn = document.getElementById("spinMore");
 const winOkBtn = document.getElementById("winOk");
 
-let options = loadOptions();
-let spinning = false;
-let cardMetrics = []; // { el, centerLocal, h }
+/**
+ * ✅ НАСТРОЙКИ СКОРОСТИ (вот тут меняешь поведение)
+ * -------------------------------------------------
+ * IDLE_SPEED_PX_S  — скорость "ползучего" вращения ДО клика (px/сек)
+ * SPIN_DURATION_MS — длительность анимации после клика
+ * BASE_FORWARD_LOOPS — сколько "полных кругов" прокрутить после клика
+ */
+const IDLE_SPEED_PX_S = 18;       // ← сделай 8..25 для "очень медленно"
+const SPIN_DURATION_MS = 5000;    // ← общая длительность разгона/торможения
+const BASE_FORWARD_LOOPS = 8;    // ← больше = дальше прокрутит перед остановкой
+const FINAL_SLOWDOWN_MS = 0;   // последние 2.2s очень медленно до полной остановки
+const FINAL_EXTRA_PX = 0; 
 
-
-// пастельная палитра (как в банках)
-const PASTELS = [
-  "#D7E6D4", // мятный
-  "#DCCFEA", // сиреневый
-  "#CFE4E3", // голубовато-зеленый
-  "#E7D6C6", // бежево-розовый
-  "#D9D9C7", // теплый песочный
+/**
+ * Фиксированные варианты.
+ */
+const options = [
+  { text: "Цветы", emoji: "🌿", badge: "3%", desc: "Порадуйте себя и близких 🌿" },
+  { text: "Рождество с Афишей", emoji: "🎁", badge: "10%", desc: "Подарки стали ещё приятнее ✨" },
+  { text: "Ювелирные изделия", emoji: "💎", badge: "5%", desc: "Сияйте ярче с нашим бонусом 😍" },
+  { text: "Вау-кэшбэк", emoji: "🎯", badge: "до 5 000 ₽", desc: "Максимум выгоды — вот это да!" },
+  { text: "Образование", emoji: "🎓", badge: "3%", desc: "Инвестируйте в себя 🎓" },
 ];
 
-// дефолтные варианты
-if (options.length === 0) {
-  options = [
-    { text: "Цветы", emoji: "🌿", badge: "3%" },
-    { text: "Рождество с Афишей", emoji: "🎁", badge: "10%" },
-    { text: "Ювелирные изделия", emoji: "💎", badge: "5%" },
-    { text: "Вау-кэшбэк", emoji: "🎯", badge: "до 5 000 ₽" },
-    { text: "Образование", emoji: "🎓", badge: "3%" },
-  ];
-  saveOptions();
-}
+// пастельная палитра
+const PASTELS = ["#D7E6D4", "#DCCFEA", "#CFE4E3", "#E7D6C6", "#D9D9C7"];
 
-renderAll();
+// “лента” должна быть длинной, чтобы всегда хватало индексов
+const TAPE_LOOPS = 220;
 
-winOkBtn.addEventListener("click", () => {
-  winCardEl.hidden = true;
-  document.body.classList.remove("modalOpen");
+let spinning = false;
+let winTimeoutId = null;
+
+let tape = [];
+let cardMetrics = [];
+let stepPx = 0;           // расстояние между центрами соседних карточек
+let firstCenter = 0;      // centerLocal первой карточки
+let cycleHeight = 0;      // высота одного "круга" = stepPx * options.length
+
+let currentY = 0;         // текущий translateY барабана
+let idleRafId = 0;
+let spinRafId = 0;
+let lastIdleTs = 0;
+
+/* ---------- init ---------- */
+
+buildTape();
+renderDrum(tape);
+
+// дождаться DOM layout
+requestAnimationFrame(() => {
+  buildCardMetrics();
+  initStartPositionAtCenter();
+  startIdle();
 });
 
-/* -------- режим скрытия настроек -------- */
-
-const savedCompact = localStorage.getItem(VIEW_KEY) === "1";
-setCompact(savedCompact);
-
-toggleViewBtn.addEventListener("click", () => {
-  const isCompact = document.body.classList.toggle("compact");
-  localStorage.setItem(VIEW_KEY, isCompact ? "1" : "0");
-  updateToggleButton(isCompact);
+winOkBtn.addEventListener("click", closeWin);
+spinMoreBtn.addEventListener("click", () => {
+  closeWin();
+  spinBtn.click();
 });
 
-function setCompact(isCompact){
-  document.body.classList.toggle("compact", isCompact);
-  updateToggleButton(isCompact);
-}
+spinBtn.addEventListener("click", () => {
+  if (spinning || cardMetrics.length === 0) return;
 
-function updateToggleButton(isCompact){
-  const label = isCompact ? "Показать настройки" : "Скрыть настройки";
-  toggleViewBtn.setAttribute("aria-label", label);
-  toggleViewBtn.setAttribute("title", label);
-}
+  // остановить idle
+  stopIdle();
 
-/* -------- добавление / удаление -------- */
-
-addBtn.addEventListener("click", () => {
-  const text = textEl.value.trim();
-  const emoji = (emojiEl.value.trim() || "✨").slice(0, 4);
-  const badge = badgeEl.value.trim();
-
-  if (!text) return;
-
-  options.unshift({ text, emoji, badge });
-  saveOptions();
-  textEl.value = "";
-  emojiEl.value = "";
-  badgeEl.value = "";
-  renderAll();
-});
-
-resetBtn.addEventListener("click", () => {
-  options = [];
-  saveOptions();
-  renderAll();
-});
-
-
-/* -------- вращение -------- */
-
-spinBtn.addEventListener("click", async () => {
-  if (spinning) return;
-  if (options.length < 2) {
-    resultEl.textContent = "Добавь хотя бы 2 варианта 🙂";
-    return;
+  // отменить прошлый win таймер/анимацию
+  if (winTimeoutId) {
+    clearTimeout(winTimeoutId);
+    winTimeoutId = null;
   }
+  closeWin();
+  if (spinRafId) cancelAnimationFrame(spinRafId);
+  spinRafId = 0;
 
-  spinning = true;
-  document.body.classList.add("spinning");
-  resultEl.textContent = "";
+  spinOnce();
+});
 
-  const loopCount = 30;
-  const tailLoops = 6;
+/* ---------- tape ---------- */
 
-  // делаем ленту из КОПИЙ, чтобы хранить исходный индекс (для пастельных цветов)
-  const tape = [];
-  for (let i = 0; i < loopCount; i++) {
+function buildTape(){
+  tape = [];
+  for (let i = 0; i < TAPE_LOOPS; i++) {
     for (let oi = 0; oi < options.length; oi++) {
-      const o = options[oi];
-      tape.push({ ...o, __oi: oi });
+      tape.push({ ...options[oi], __oi: oi });
     }
   }
-
-  const winnerIndex = randInt(0, options.length - 1);
-  const base = (loopCount - tailLoops) * options.length;
-  const finalIndex = base + winnerIndex;
-
-  renderDrum(tape);
-  await new Promise(requestAnimationFrame);
-  buildCardMetrics();
-
-
-  // начальный “3D” эффект
-  applyDepthEffectFast();
-
-  const cardEls = drumEl.querySelectorAll(".card");
-  const windowH = document.querySelector(".drumWindow").getBoundingClientRect().height;
-  const centerLine = windowH / 2;
-
-  const targetCard = cardEls[finalIndex];
-  const cardCenter = targetCard.offsetTop + targetCard.offsetHeight / 2;
-  const targetY = centerLine - cardCenter;
-
-  const firstCenter = cardEls[0].offsetTop + cardEls[0].offsetHeight / 2;
-  const startY = centerLine - firstCenter;
-
-  drumEl.style.transition = "none";
-  drumEl.style.transform = `translateY(${startY}px)`;
-  drumEl.getBoundingClientRect();
-
-  // длительность та же, “импульс” мягче
-  const duration = 2600 + randInt(0, 800);
-drumEl.style.transition = `transform ${duration}ms cubic-bezier(.12,.12,.12,1)`;
-  drumEl.style.transform = `translateY(${targetY}px)`;
-
-  // во время анимации — обновляем прозрачность/ширину (scaleX)
-  const t0 = performance.now();
-  let rafId = 0;
-
-  const tick = () => {
-  applyDepthEffectFast();
-  queueMicrotask(applyDepthEffectFast);
-
-  if (performance.now() - t0 < duration + 60) {
-    rafId = requestAnimationFrame(tick);
-  }
-};
-
-  rafId = requestAnimationFrame(tick);
-
-  await wait(duration);
-  cancelAnimationFrame(rafId);
-
-  // финальный апдейт, чтобы точно “встало”
-  applyDepthEffectFast();
-
-  cardEls.forEach(el => el.classList.remove("highlight"));
-  targetCard.classList.add("highlight");
-
-  const w = options[winnerIndex];
-  resultEl.textContent = `Выпало: ${w.badge ? w.badge + " — " : ""}${w.text}`;
-  setTimeout(() => {
-  showWinCard(w);
-}, 800);
-document.body.classList.remove("spinning");
-  spinning = false;
-});
-
-/* -------- “глубина”: ширина + прозрачность по расстоянию от центра -------- */
-
-function applyDepthEffect(){
-  const windowEl = document.querySelector(".drumWindow");
-  const wRect = windowEl.getBoundingClientRect();
-  const centerY = wRect.top + wRect.height / 2;
-  const maxD = wRect.height / 2;
-
-  const cards = drumEl.querySelectorAll(".card");
-  cards.forEach((card) => {
-    const r = card.getBoundingClientRect();
-    const cY = r.top + r.height / 2;
-    const d = Math.abs(cY - centerY);
-    const t = clamp(d / maxD, 0, 1);
-
-    // чем дальше от центра, тем уже и прозрачнее (как “дальше от пользователя”)
-    const scaleX = 1 - 0.28 * t;  // было 0.14
-const scaleY = 1 - 0.17 * t;  // чуть сильнее
-const opacity = 1 - 0.70 * t; // сильнее “даль”
-
-    card.style.transform = `scale(${scaleX}, ${scaleY})`;
-    card.style.opacity = String(opacity);
-  });
-}
-
-function clamp(x, a, b){
-  return Math.max(a, Math.min(b, x));
-}
-
-/* -------- рендер -------- */
-
-function renderAll(){
-  renderList();
-  // обычный режим: тоже красим пастельно (по индексу в options)
-  renderDrum(options.map((o, oi) => ({ ...o, __oi: oi })));
-  resultEl.textContent = "";
-  requestAnimationFrame(() => {
-  buildCardMetrics();
-  applyDepthEffectFast();
-});
-
-}
-
-function renderList(){
-  listEl.innerHTML = "";
-  options.forEach((o, i) => {
-    const div = document.createElement("div");
-    div.className = "smallCard";
-    div.innerHTML = `
-      <div class="icon" style="width:38px;height:38px;border-radius:14px;">
-        ${escapeHtml(o.emoji || "✨")}
-      </div>
-      <div>
-        <div class="t">${escapeHtml(o.badge ? o.badge + " — " : "")}${escapeHtml(o.text)}</div>
-        <div class="b">#${i+1}</div>
-      </div>
-      <button>Удалить</button>
-    `;
-    div.querySelector("button").addEventListener("click", () => {
-      options.splice(i, 1);
-      saveOptions();
-      renderAll();
-    });
-    listEl.appendChild(div);
-  });
 }
 
 function renderDrum(arr){
@@ -266,10 +107,8 @@ function renderDrum(arr){
     const card = document.createElement("div");
     card.className = "card";
 
-    // пастельный фон по исходному индексу
     const oi = Number.isFinite(o.__oi) ? o.__oi : 0;
-    const bg = PASTELS[oi % PASTELS.length];
-    card.style.setProperty("--card-bg", bg);
+    card.style.setProperty("--card-bg", PASTELS[oi % PASTELS.length]);
 
     card.innerHTML = `
       <div class="icon">${escapeHtml(o.emoji || "✨")}</div>
@@ -282,28 +121,261 @@ function renderDrum(arr){
   });
 }
 
-/* -------- utils -------- */
+/* ---------- metrics + positioning ---------- */
 
-function loadOptions(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  }catch{
-    return [];
+function buildCardMetrics(){
+  const cards = drumEl.querySelectorAll(".card");
+  cardMetrics = Array.from(cards).map(el => ({
+    el,
+    centerLocal: el.offsetTop + el.offsetHeight / 2
+  }));
+
+  if (cardMetrics.length < 2) return;
+
+  firstCenter = cardMetrics[0].centerLocal;
+  stepPx = cardMetrics[1].centerLocal - cardMetrics[0].centerLocal;
+
+  // один "круг" — это длина списка options
+  cycleHeight = stepPx * options.length;
+}
+
+function initStartPositionAtCenter() {
+  const centerLine = 0;
+
+  const first = cardMetrics[0];
+  const startY = centerLine - first.centerLocal;
+
+  currentY = startY; // ✅ важно
+
+  drumEl.style.transition = "none";
+  drumEl.style.transform = `translateY(${startY}px)`;
+}
+
+
+/* ---------- idle вращение ---------- */
+
+function startIdle(){
+  document.body.classList.remove("spinning");
+  lastIdleTs = 0;
+
+  const tick = (ts) => {
+    if (!lastIdleTs) lastIdleTs = ts;
+    const dt = (ts - lastIdleTs) / 1000;
+    lastIdleTs = ts;
+
+    // едем вверх очень медленно (как "лента")
+    currentY -= IDLE_SPEED_PX_S * dt;
+
+    // чтобы не уехать в бесконечность: оборачиваем на 1 круг
+    // (когда сдвинулись больше чем на круг — возвращаем назад на круг)
+    const H = document.querySelector(".drumWindow").clientHeight;
+    const centerLine = H / 2;
+    const minY = centerLine - (firstCenter + cycleHeight); // "достаточно низко"
+
+    if (currentY < minY) {
+      currentY += cycleHeight;
+    }
+
+    applyTranslateY(currentY);
+    applyDepthEffectFast(currentY);
+
+    idleRafId = requestAnimationFrame(tick);
+  };
+
+  idleRafId = requestAnimationFrame(tick);
+}
+
+function stopIdle(){
+  if (idleRafId) cancelAnimationFrame(idleRafId);
+  idleRafId = 0;
+  lastIdleTs = 0;
+}
+
+/* ---------- spin (разгон → торможение) ---------- */
+
+function spinOnce(){
+  if (options.length < 2) {
+    resultEl.textContent = "Нужно минимум 2 варианта 🙂";
+    startIdle();
+    return;
+  }
+
+  spinning = true;
+  document.body.classList.add("spinning");
+  resultEl.textContent = "";
+
+  const H = document.querySelector(".drumWindow").clientHeight;
+  const centerLine = H / 2;
+
+  // текущий индекс, который примерно под центром
+  const currentIndexAtCenter = Math.round((centerLine - currentY - firstCenter) / stepPx);
+
+  // выбираем победителя
+  const winnerIndex = randInt(0, options.length - 1);
+
+  // хотим уехать вперед на много позиций
+  const forward = BASE_FORWARD_LOOPS * options.length;
+
+  // базовый целевой индекс “вперед”
+  let targetIndex = currentIndexAtCenter + forward;
+
+  // подгоняем так, чтобы targetIndex % options.length == winnerIndex
+  const mod = ((targetIndex % options.length) + options.length) % options.length;
+  const delta = (winnerIndex - mod + options.length) % options.length;
+  targetIndex += delta;
+
+  // защитимся, если вдруг выходим за длину ленты
+  targetIndex = clamp(targetIndex, 0, cardMetrics.length - 1);
+
+  const targetCenterLocal = cardMetrics[targetIndex].centerLocal;
+  const targetY = centerLine - targetCenterLocal;
+
+  // анимация от currentY к targetY
+    const startY = currentY;
+
+  const total = SPIN_DURATION_MS;
+  const slow = FINAL_SLOWDOWN_MS;
+  const fast = Math.max(300, total - slow); // защита
+
+  const tStart = performance.now();
+
+  // чуть-чуть “переката” в финале (можно оставить 0)
+  const finalY = targetY + FINAL_EXTRA_PX;
+
+  const step = (now) => {
+    const elapsed = now - tStart;
+
+    if (elapsed < fast) {
+      // Фаза A: разгон → торможение, но без резкого импульса
+      const p = clamp(elapsed / fast, 0, 1);
+      const eased = easeInOutSine(p);
+
+      currentY = lerp(startY, finalY, eased);
+
+      applyTranslateY(currentY);
+      applyDepthEffectFast(currentY);
+
+      spinRafId = requestAnimationFrame(step);
+      return;
+    }
+
+    // Фаза B: очень медленная докрутка до targetY
+    const p2 = clamp((elapsed - fast) / slow, 0, 1);
+
+    // очень мягкое затухание — быстро в начале фазы и почти “ползёт” к концу
+    const eased2 = easeOutExpo(p2);
+
+    currentY = lerp(finalY, targetY, eased2);
+
+    applyTranslateY(currentY);
+    applyDepthEffectFast(currentY);
+
+    if (p2 < 1) {
+      spinRafId = requestAnimationFrame(step);
+    } else {
+      spinRafId = 0;
+
+      // ✅ ЖЁСТКО фиксируем финальную позицию, чтобы не было микро-прыжка
+      currentY = targetY;
+      applyTranslateY(currentY);
+      applyDepthEffectFast(currentY);
+
+      onSpinEnd(targetIndex, winnerIndex);
+    }
+  };
+
+  spinRafId = requestAnimationFrame(step);
+
+}
+
+function onSpinEnd(targetIndex, winnerIndex){
+  // подсветка
+  cardMetrics.forEach(c => c.el.classList.remove("highlight"));
+  if (cardMetrics[targetIndex]?.el) cardMetrics[targetIndex].el.classList.add("highlight");
+
+  const w = options[winnerIndex];
+  resultEl.textContent = `Выпало: ${w.badge ? w.badge + " — " : ""}${w.text}`;
+
+  document.body.classList.remove("spinning");
+  spinning = false;
+
+  // показать окно победы через 1 секунду
+  winTimeoutId = setTimeout(() => {
+    showWinCard(w);
+    winTimeoutId = null;
+  }, 1000);
+
+  // и снова включить медленное вращение
+  // startIdle();
+}
+
+/* ---------- depth (быстро, без getBoundingClientRect на каждую карточку) ---------- */
+
+function applyDepthEffectFast(y){
+  const windowEl = document.querySelector(".drumWindow");
+  const H = windowEl.clientHeight;
+  const centerLine = H / 2;
+  const maxD = H / 2;
+
+  for (const c of cardMetrics){
+    const center = c.centerLocal + y;
+    const d = Math.abs(center - centerLine);
+    const t = clamp(d / maxD, 0, 1);
+
+    // сильнее разница дальних/ближней
+    const scaleX = 1 - 0.30 * t;
+    const scaleY = 1 - 0.12 * t;
+    const opacity = 1 - 0.75 * t;
+
+    c.el.style.transform = `scale(${scaleX}, ${scaleY})`;
+    c.el.style.opacity = String(opacity);
   }
 }
 
-function saveOptions(){
-  localStorage.setItem(LS_KEY, JSON.stringify(options));
+function applyTranslateY(y){
+  drumEl.style.transform = `translateY(${y}px)`;
 }
+
+/* ---------- win modal ---------- */
+
+function showWinCard(w){
+  winIconEl.textContent = w.emoji || "✨";
+  winBadgeEl.textContent = w.badge || "";
+  winTitleEl.textContent = w.text || "Выигрыш";
+  winDescEl.textContent = w.desc || "Поздравляем! 🎉";
+
+  winCardEl.hidden = false;
+  document.body.classList.add("modalOpen");
+}
+
+function closeWin(){
+  winCardEl.hidden = true;
+  document.body.classList.remove("modalOpen");
+}
+
+/* ---------- utils ---------- */
 
 function randInt(a,b){
   return Math.floor(Math.random()*(b-a+1))+a;
 }
 
-function wait(ms){
-  return new Promise(r=>setTimeout(r, ms));
+function clamp(x, a, b){
+  return Math.max(a, Math.min(b, x));
 }
+
+function lerp(a, b, t){
+  return a + (b - a) * t;
+}
+
+// медленно → быстрее → медленно, мягкий разгон/торможение
+function easeInOutSine(t){
+  return 0.5 - 0.5 * Math.cos(Math.PI * t);
+}
+
+function easeOutExpo(t){
+  return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+}
+
 
 function escapeHtml(str){
   return String(str)
@@ -312,66 +384,4 @@ function escapeHtml(str){
     .replaceAll(">","&gt;")
     .replaceAll('"',"&quot;")
     .replaceAll("'","&#039;");
-}
-
-function showWinCard(w){
-  // Заполняем карточку
-  winIconEl.textContent = w.emoji || "✨";
-  winBadgeEl.textContent = w.badge || "";
-  winTitleEl.textContent = w.text || "Выигрыш";
-  winDescEl.textContent = "Поздравляем! 🎉"; // можешь заменить на своё
-
-  // если потом добавишь w.link — будет ссылка
-  if (w.link) {
-    winLinkEl.href = w.link;
-    winLinkEl.hidden = false;
-  } else {
-    winLinkEl.hidden = true;
-  }
-
-  // Показать
-  winCardEl.hidden = false;
-  document.body.classList.add("modalOpen");
-}
-
-function buildCardMetrics(){
-  const cards = drumEl.querySelectorAll(".card");
-  cardMetrics = Array.from(cards).map(el => ({
-    el,
-    centerLocal: el.offsetTop + el.offsetHeight / 2,
-    h: el.offsetHeight
-  }));
-}
-
-function getTranslateY(el){
-  const tr = getComputedStyle(el).transform;
-  if (!tr || tr === "none") return 0;
-  // matrix(a,b,c,d,tx,ty)
-  const m = tr.match(/matrix\(([^)]+)\)/);
-  if (!m) return 0;
-  const parts = m[1].split(",").map(Number);
-  return parts.length >= 6 ? parts[5] : 0;
-}
-
-function applyDepthEffectFast(){
-  const windowEl = document.querySelector(".drumWindow");
-  const H = windowEl.clientHeight;
-  const centerLine = H / 2;
-  const maxD = H / 2;
-
-  const y = getTranslateY(drumEl);
-
-  for (const c of cardMetrics){
-    // центр карточки в координатах окна = centerLocal + translateY
-    const center = c.centerLocal + y;
-    const d = Math.abs(center - centerLine);
-    const t = clamp(d / maxD, 0, 1);
-
-    const scaleX = 1 - 0.28 * t;   // твоя “большая разница”
-    const scaleY = 1 - 0.10 * t;
-    const opacity = 1 - 0.70 * t;
-
-    c.el.style.transform = `scale(${scaleX}, ${scaleY})`;
-    c.el.style.opacity = String(opacity);
-  }
 }

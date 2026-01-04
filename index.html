@@ -9,68 +9,38 @@
   <body>
     <main class="app">
       <header class="top">
-        <div class="topRow">
-          <div>
-            <h1>Крутите барабан</h1>
-            <p class="sub">Добавь свои варианты и жми «Крутить»</p>
-          </div>
-
-          <!-- маленькая почти незаметная кнопка настроек -->
-          <button
-            id="toggleView"
-            class="toggleSettings"
-            type="button"
-            aria-label="Свернуть/развернуть настройки"
-            title="Свернуть/развернуть настройки">
-            <span aria-hidden="true">⚙️</span>
-          </button>
-        </div>
+        <h1>Крутите барабан</h1>
       </header>
-
-      <section class="panel">
-        <div class="row">
-          <input id="text" class="input"
-            placeholder="Текст (например: 5% Ювелирные изделия)" />
-        </div>
-        <div class="row">
-          <input id="emoji" class="input small"
-            placeholder="Иконка/эмодзи (например 💎)" maxlength="4" />
-          <input id="badge" class="input small"
-            placeholder="Бейдж (например 5% / до 5000 ₽)" />
-        </div>
-        <div class="row">
-          <button id="add" class="btn ghost">Добавить</button>
-          <button id="reset" class="btn ghost danger">Сброс</button>
-        </div>
-      </section>
 
       <section class="drumWrap">
         <div class="drumWindow">
-          <div class="pointer"></div>
+          <div class="pointer" aria-hidden="true"></div>
           <div id="drum" class="drum"></div>
+
+          <!-- легкое затемнение сверху/снизу -->
+          <div class="fadeTop" aria-hidden="true"></div>
+          <div class="fadeBottom" aria-hidden="true"></div>
         </div>
-        <button id="spin" class="btn primary">Крутить скорее!</button>
+
+        <button id="spin" class="btn primary" type="button">Крутить скорее!</button>
         <div id="result" class="result" aria-live="polite"></div>
+
+        <!-- WIN MODAL -->
         <div id="winCard" class="winCard" hidden>
           <div class="winCardInner">
             <div class="winIcon" id="winIcon">✨</div>
             <div class="winBadge" id="winBadge">5%</div>
             <div class="winTitle" id="winTitle">Ювелирные изделия</div>
-            <div class="winDesc" id="winDesc">Тут можно написать описание
-              приза.</div>
+            <div class="winDesc" id="winDesc">Поздравляем! 🎉</div>
           </div>
 
           <div class="winActions">
-            <button id="spinMore" class="btn ghost">Крутить ещё<br><span
-                class="btnSub">приходи завтра</span></button>
-            <button id="winOk" class="btn primary">Отлично</button>
+            <button id="spinMore" class="btn ghost" type="button">
+              Крутить ещё<br><span class="btnSub">приходи завтра</span>
+            </button>
+            <button id="winOk" class="btn primary" type="button">Отлично</button>
           </div>
         </div>
-      </section>
-
-      <section class="list">
-        <h2>Варианты</h2>
-        <div id="list" class="listGrid"></div>
       </section>
     </main>
 
