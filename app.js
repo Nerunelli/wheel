@@ -9,6 +9,7 @@ const winTitleEl = document.getElementById("winTitle");
 const winDescEl = document.getElementById("winDesc");
 const spinMoreBtn = document.getElementById("spinMore");
 const winOkBtn = document.getElementById("winOk");
+
 const introCardEl = document.getElementById("introCard");
 const toWheelBtn = document.getElementById("toWheel");
 
@@ -19,10 +20,13 @@ const toWheelBtn = document.getElementById("toWheel");
  * SPIN_DURATION_MS — длительность анимации после клика
  * BASE_FORWARD_LOOPS — сколько "полных кругов" прокрутить после клика
  */
-const IDLE_SPEED_PX_S = 18;       // ← сделай 8..25 для "очень медленно"
-const SPIN_DURATION_MS = 15000;    // ← общая длительность разгона/торможения
-const BASE_FORWARD_LOOPS = 8;    // ← больше = дальше прокрутит перед остановкой
+const IDLE_SPEED_PX_S = 18;
+const SPIN_DURATION_MS = 15000;
+const BASE_FORWARD_LOOPS = 8;
 
+/**
+ * Варианты (цвет задаёт цвет карточки и win-плашки)
+ */
 const options = [
   {
     text: "Цветы",
