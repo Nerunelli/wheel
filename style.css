@@ -6,10 +6,13 @@
   --radius: 18px;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 /* чтобы фон не обрезался */
-html, body {
+html,
+body {
   height: 100%;
   min-height: 100vh;
   margin: 0;
@@ -34,8 +37,9 @@ body {
 }
 
 .top h1 {
-  margin: 8px 0 14px;
-  font-size: 28px;
+  margin: 8px 0 24px;
+  font-size: 24px;
+  text-align: center;
   letter-spacing: .2px;
 }
 
@@ -48,11 +52,11 @@ body {
   cursor: pointer;
 }
 
-.btn.primary{
+.btn.primary {
   width: 100%;
   background: #ffffff;
-  color:#111;
-  box-shadow: 0 10px 22px rgba(255,255,255,.10);
+  color: #111;
+  box-shadow: 0 10px 22px rgba(255, 255, 255, .10);
   padding: 18px 16px;
   font-size: 20px;
   font-weight: 750;
@@ -66,7 +70,9 @@ body {
   border: 1px solid rgba(255, 255, 255, .12);
 }
 
-.drumWrap { margin: 8px 0 20px; }
+.drumWrap {
+  margin: 8px 0 20px;
+}
 
 /* окно барабана */
 .drumWindow {
@@ -80,7 +86,7 @@ body {
 }
 
 /* стрелка */
-.pointer{
+.pointer {
   position: absolute;
   right: -2px;
   top: 50%;
@@ -100,20 +106,24 @@ body {
 }
 
 /* градиентные фейды сверху/снизу */
-.fadeTop, .fadeBottom{
-  position:absolute;
-  left:0; right:0;
+.fadeTop,
+.fadeBottom {
+  position: absolute;
+  left: 0;
+  right: 0;
   height: 90px;
   z-index: 10;
-  pointer-events:none;
+  pointer-events: none;
 }
-.fadeTop{
-  top:0;
-  background: linear-gradient(180deg, rgba(15,17,21,.85), rgba(15,17,21,0));
+
+.fadeTop {
+  top: 0;
+  background: linear-gradient(180deg, rgba(15, 17, 21, .85), rgba(15, 17, 21, 0));
 }
-.fadeBottom{
-  bottom:0;
-  background: linear-gradient(0deg, rgba(15,17,21,.85), rgba(15,17,21,0));
+
+.fadeBottom {
+  bottom: 0;
+  background: linear-gradient(0deg, rgba(15, 17, 21, .85), rgba(15, 17, 21, 0));
 }
 
 .drum {
@@ -148,7 +158,7 @@ body {
   transition: transform 90ms linear, opacity 90ms linear;
 }
 
-.spinning .card{
+.spinning .card {
   transition: none !important;
 }
 
@@ -162,7 +172,9 @@ body {
   font-size: 22px;
 }
 
-.meta { flex: 1; }
+.meta {
+  flex: 1;
+}
 
 .title {
   font-size: 22px;
@@ -172,17 +184,17 @@ body {
 
 .badge {
   margin-top: 4px;
-  color: rgba(0,0,0,.55);
+  color: rgba(0, 0, 0, .55);
   font-size: 14px;
   font-weight: 600;
 }
 
-.highlight{
+.highlight {
   outline: 2px solid rgba(255, 255, 255, .9);
   box-shadow: 0 0 0 6px rgba(255, 255, 255, .08);
 }
 
-.result{
+.result {
   margin-top: 10px;
   color: var(--muted);
   text-align: center;
@@ -191,7 +203,7 @@ body {
 }
 
 /* WIN MODAL overlay */
-.winCard{
+.winCard {
   position: fixed;
   inset: 0;
   z-index: 2000;
@@ -205,11 +217,11 @@ body {
   padding: 18px;
 }
 
-.winCard[hidden]{
+.winCard[hidden] {
   display: none !important;
 }
 
-.winCardInner{
+.winCardInner {
   width: min(520px, 100%);
   border-radius: 22px;
   overflow: hidden;
@@ -217,11 +229,11 @@ body {
   padding: 26px 18px 18px;
 
   text-align: center;
-  background: #E8DDF7;
+  background: #d9f6ff;
   color: #111;
 }
 
-.winIcon{
+.winIcon {
   width: 80px;
   height: 80px;
   margin: 6px auto 14px;
@@ -232,40 +244,42 @@ body {
   background: rgba(255, 255, 255, .90);
 }
 
-.winBadge{
+.winBadge {
   font-size: 58px;
   font-weight: 900;
   margin: 4px 0 6px;
 }
 
-.winTitle{
+.winTitle {
   font-size: 24px;
   font-weight: 800;
   margin: 0 0 8px;
 }
 
-.winDesc{
-  font-size: 14px;
+.winDesc {
+  font-size: 18px;
   opacity: .8;
-  margin: 0 0 4px;
+  margin: 40px 4px 20px;
 }
 
-.winActions{
+.winActions {
   width: min(520px, 100%);
   display: flex;
   gap: 12px;
   margin-top: 12px;
 }
 
-.winActions .btn{ flex: 1; }
+.winActions .btn {
+  flex: 1;
+}
 
-.btnSub{
-  display:block;
+.btnSub {
+  display: block;
   font-weight: 650;
   opacity: .7;
   margin-top: 2px;
 }
 
-.modalOpen{
+.modalOpen {
   overflow: hidden;
 }

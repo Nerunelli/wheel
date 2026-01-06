@@ -9,6 +9,8 @@ const winTitleEl = document.getElementById("winTitle");
 const winDescEl = document.getElementById("winDesc");
 const spinMoreBtn = document.getElementById("spinMore");
 const winOkBtn = document.getElementById("winOk");
+const introCardEl = document.getElementById("introCard");
+const toWheelBtn = document.getElementById("toWheel");
 
 /**
  * ✅ НАСТРОЙКИ СКОРОСТИ (вот тут меняешь поведение)
@@ -18,27 +20,127 @@ const winOkBtn = document.getElementById("winOk");
  * BASE_FORWARD_LOOPS — сколько "полных кругов" прокрутить после клика
  */
 const IDLE_SPEED_PX_S = 18;       // ← сделай 8..25 для "очень медленно"
-const SPIN_DURATION_MS = 5000;    // ← общая длительность разгона/торможения
+const SPIN_DURATION_MS = 15000;    // ← общая длительность разгона/торможения
 const BASE_FORWARD_LOOPS = 8;    // ← больше = дальше прокрутит перед остановкой
-const FINAL_SLOWDOWN_MS = 0;   // последние 2.2s очень медленно до полной остановки
-const FINAL_EXTRA_PX = 0; 
+
+const options = [
+  {
+    text: "Цветы",
+    emoji: "🌿",
+    badge: "3%",
+    desc: "Порадуйте себя и близких 🌿",
+    color: "#619D80" // природный зелёный
+  },
+  {
+    text: "Рождество с Афишей",
+    emoji: "🎁",
+    badge: "10%",
+    desc: "Подарки стали ещё приятнее ✨",
+    color: "#E2D5F1" // зимний, праздничный
+  },
+  {
+    text: "Ювелирные изделия",
+    emoji: "💎",
+    badge: "5%",
+    desc: "Сияйте ярче с нашим бонусом 😍",
+    color: "#9BF1F4" // холодный блеск, ассоциация с камнями
+  },
+  {
+    text: "Вау-кэшбэк",
+    emoji: "🎯",
+    badge: "до 5 000 ₽",
+    desc: "Максимум выгоды — вот это да!",
+    color: "#EEBF93" // тёплый акцент, внимание
+  },
+  {
+    text: "Образование",
+    emoji: "🎓",
+    badge: "3%",
+    desc: "Инвестируйте в себя 🎓",
+    color: "#DBCEE8" // спокойный, интеллектуальный
+  }
+];
+
 
 /**
  * Фиксированные варианты.
  */
-const options = [
-  { text: "Цветы", emoji: "🌿", badge: "3%", desc: "Порадуйте себя и близких 🌿" },
-  { text: "Рождество с Афишей", emoji: "🎁", badge: "10%", desc: "Подарки стали ещё приятнее ✨" },
-  { text: "Ювелирные изделия", emoji: "💎", badge: "5%", desc: "Сияйте ярче с нашим бонусом 😍" },
-  { text: "Вау-кэшбэк", emoji: "🎯", badge: "до 5 000 ₽", desc: "Максимум выгоды — вот это да!" },
-  { text: "Образование", emoji: "🎓", badge: "3%", desc: "Инвестируйте в себя 🎓" },
+const mockOptions = [
+  {
+    text: "Колбаса и мясные продукты",
+    emoji: "🍖",
+    badge: "100%",
+    color: "#E2A2A2",
+    desc: "100% кэшбек на колбасу и мясные продукты в любых магазинах при оплате картой Альфа-банка. Максимальный размер кэшбека — 500 ₽."
+  },
+  {
+    text: "Вино Апсны",
+    emoji: "🍷",
+    badge: "100%",
+    color: "#DFEEDC",
+    desc: "Две бутылки вина Апсны за 1 ₽. Действует в любых магазинах при оплате картой Альфа-банка."
+  },
+  {
+    text: "АЗС",
+    emoji: "🚘",
+    badge: "50%",
+    color: "#ffb3b3ff",
+    desc: ""
+  },
+  {
+    text: "Ostin",
+    emoji: "👕",
+    badge: "100%",
+    color: "#DBCEE8",
+    desc: "100% кэшбека на любые покупки в сети магазинов Ostin при оплате картой Альфа-банка. Максимальный размер кэшбека — 1 000 ₽."
+  },
+  {
+    text: "ВкусВилл",
+    emoji: "🛒",
+    badge: "100%",
+    color: "#DFEEDC",
+    desc: "100% кэшбек на покупки в магазинах ВкусВилл при оплате картой Альфа-банка. Максимальный размер кэшбека — 1 000 ₽."
+  },
+  {
+    text: "Озон",
+    emoji: "🔵🟣🛍🎊🎉🪢",
+    badge: "100%",
+    color: "#e99bffff",
+    desc: "100% кэшбек на покупки в магазинах ВкусВилл при оплате картой Альфа-банка. Максимальный размер кэшбека — 1 000 ₽."
+  },
+  {
+    text: "Жидкость для омывателя",
+    emoji: "❄️",
+    badge: "100%",
+    color: "#9BF1F4",
+    desc: "Зима в самом разгаре — позаботьтесь о чистоте стекол! 100% кэшбек на покупку жидкости для омывателя в магазине «Близнецы» при оплате Альфа-картой. Максимум — 10 л."
+  },
+  {
+    text: "Афиша",
+    emoji: "🎭",
+    badge: "100%",
+    color: "#EEBF93",
+    desc: "100% кэшбека при покупке билетов в театры, кинотеатры, оперы и музеи. Максимальный размер кэшбека — 2 000 ₽."
+  }
 ];
 
 // пастельная палитра
-const PASTELS = ["#D7E6D4", "#DCCFEA", "#CFE4E3", "#E7D6C6", "#D9D9C7"];
+// const PASTELS = ["#D7E6D4", "#DCCFEA", "#CFE4E3", "#E7D6C6", "#D9D9C7"];
+
+const PASTELS = ["#E2D5F1",
+"#EEBF93",
+"#f4dc94",
+"#619D80",
+"#E2A2A2",
+"#DBCEE8",
+"#DFEEDC",
+"#9BF1F4",
+]
 
 // “лента” должна быть длинной, чтобы всегда хватало индексов
 const TAPE_LOOPS = 220;
+// сколько кругов ленты держим в DOM (чем больше — тем дольше без “отмотки”)
+const IDLE_WRAP_LOOPS = 180; // ~180 кругов = примерно 5–15 минут, зависит от скорости и шага
 
 let spinning = false;
 let winTimeoutId = null;
@@ -48,6 +150,7 @@ let cardMetrics = [];
 let stepPx = 0;           // расстояние между центрами соседних карточек
 let firstCenter = 0;      // centerLocal первой карточки
 let cycleHeight = 0;      // высота одного "круга" = stepPx * options.length
+let wrapHeight = 0;      // 
 
 let currentY = 0;         // текущий translateY барабана
 let idleRafId = 0;
@@ -66,11 +169,22 @@ requestAnimationFrame(() => {
   startIdle();
 });
 
+// показываем приветственную плашку поверх всего
+introCardEl.hidden = false;
+document.body.classList.add("modalOpen");
+
+
 winOkBtn.addEventListener("click", closeWin);
 spinMoreBtn.addEventListener("click", () => {
   closeWin();
   spinBtn.click();
 });
+
+toWheelBtn.addEventListener("click", () => {
+  introCardEl.hidden = true;
+  document.body.classList.remove("modalOpen");
+});
+
 
 spinBtn.addEventListener("click", () => {
   if (spinning || cardMetrics.length === 0) return;
@@ -107,8 +221,11 @@ function renderDrum(arr){
     const card = document.createElement("div");
     card.className = "card";
 
-    const oi = Number.isFinite(o.__oi) ? o.__oi : 0;
-    card.style.setProperty("--card-bg", PASTELS[oi % PASTELS.length]);
+    card.style.setProperty(
+  "--card-bg",
+  o.color || "#E8E8E8"
+);
+
 
     card.innerHTML = `
       <div class="icon">${escapeHtml(o.emoji || "✨")}</div>
@@ -137,6 +254,8 @@ function buildCardMetrics(){
 
   // один "круг" — это длина списка options
   cycleHeight = stepPx * options.length;
+  wrapHeight = cycleHeight * IDLE_WRAP_LOOPS;
+
 }
 
 function initStartPositionAtCenter() {
@@ -170,11 +289,12 @@ function startIdle(){
     // (когда сдвинулись больше чем на круг — возвращаем назад на круг)
     const H = document.querySelector(".drumWindow").clientHeight;
     const centerLine = H / 2;
-    const minY = centerLine - (firstCenter + cycleHeight); // "достаточно низко"
+const minY = centerLine - (firstCenter + wrapHeight);
 
     if (currentY < minY) {
-      currentY += cycleHeight;
-    }
+  currentY += wrapHeight;
+}
+
 
     applyTranslateY(currentY);
     applyDepthEffectFast(currentY);
@@ -233,24 +353,24 @@ function spinOnce(){
   // анимация от currentY к targetY
     const startY = currentY;
 
-  const total = SPIN_DURATION_MS;
-  const slow = FINAL_SLOWDOWN_MS;
-  const fast = Math.max(300, total - slow); // защита
+    const total = SPIN_DURATION_MS;
+
+  // ✅ разгон короче, торможение дольше
+  const accelMs = Math.max(250, Math.floor(total * 0.20)); // ~22% времени
+  const decelMs = Math.max(400, total - accelMs - 7000);          // остальное — торможение
 
   const tStart = performance.now();
-
-  // чуть-чуть “переката” в финале (можно оставить 0)
-  const finalY = targetY + FINAL_EXTRA_PX;
+  const splitY = lerp(startY, targetY, 0.65); // точка, до которой “разгоняемся”
 
   const step = (now) => {
     const elapsed = now - tStart;
 
-    if (elapsed < fast) {
-      // Фаза A: разгон → торможение, но без резкого импульса
-      const p = clamp(elapsed / fast, 0, 1);
-      const eased = easeInOutSine(p);
+    if (elapsed < accelMs) {
+      // Фаза A: разгон (короче)
+      const p = clamp(elapsed / accelMs, 0, 1);
+      const eased = easeInQuad(p);
 
-      currentY = lerp(startY, finalY, eased);
+      currentY = lerp(startY, splitY, eased);
 
       applyTranslateY(currentY);
       applyDepthEffectFast(currentY);
@@ -259,13 +379,11 @@ function spinOnce(){
       return;
     }
 
-    // Фаза B: очень медленная докрутка до targetY
-    const p2 = clamp((elapsed - fast) / slow, 0, 1);
-
-    // очень мягкое затухание — быстро в начале фазы и почти “ползёт” к концу
+    // Фаза B: торможение (дольше)
+    const p2 = clamp((elapsed - accelMs) / decelMs, 0, 1);
     const eased2 = easeOutExpo(p2);
 
-    currentY = lerp(finalY, targetY, eased2);
+    currentY = lerp(splitY, targetY, eased2);
 
     applyTranslateY(currentY);
     applyDepthEffectFast(currentY);
@@ -286,6 +404,10 @@ function spinOnce(){
 
   spinRafId = requestAnimationFrame(step);
 
+}
+
+function easeInQuad(t){
+  return t * t;
 }
 
 function onSpinEnd(targetIndex, winnerIndex){
@@ -339,6 +461,9 @@ function applyTranslateY(y){
 /* ---------- win modal ---------- */
 
 function showWinCard(w){
+  const inner = winCardEl.querySelector(".winCardInner");
+inner.style.background = w.color || "#E8DDF7";
+
   winIconEl.textContent = w.emoji || "✨";
   winBadgeEl.textContent = w.badge || "";
   winTitleEl.textContent = w.text || "Выигрыш";
