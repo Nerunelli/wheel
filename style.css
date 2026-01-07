@@ -227,8 +227,50 @@ body {
   box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
   padding: 26px 18px 18px;
   text-align: center;
-  background: #d9f6ff;
   color: #111;
+}
+
+.introCardInner {
+  position: relative;
+  isolation: isolate;
+  /* чтобы слои не смешивались снаружи */
+  width: min(520px, 100%);
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
+  padding: 26px 18px 18px;
+  text-align: center;
+  background: #fff9f9;
+  border: 6px solid #df503a;
+  color: #111;
+}
+
+/* слой с повторяющимися картинками */
+.introCardInner::before {
+  content: "";
+  position: absolute;
+  inset: -120px;
+  /* запас, чтобы при повороте не было пустых углов */
+  z-index: 0;
+
+  background-image: url("Alfabank_logo.png");
+  /* положи файл рядом со style.css */
+  background-repeat: repeat;
+  background-size: 600px auto;
+  /* размер “плитки” — меняй как хочешь */
+  opacity: 0.15;
+  /* прозрачность логотипов */
+
+  transform: rotate(-30deg);
+  /* ✅ угол (поставь -30..-60 или +30..+60) */
+  transform-origin: center;
+  pointer-events: none;
+}
+
+/* чтобы текст/контент был поверх фона */
+.introCardInner>* {
+  position: relative;
+  z-index: 1;
 }
 
 .winIcon {
@@ -254,8 +296,24 @@ body {
   margin: 0 0 8px;
 }
 
+.introTitle {
+  font-size: 24px;
+  font-weight: 800;
+  color: #5f160b;
+  margin: 0 0 8px;
+}
+
+.introDesc {
+  font-size: 18px;
+  line-height: 28px;
+  color: #380a03;
+  opacity: .8;
+  margin: 24px 4px 10px;
+}
+
 .winDesc {
   font-size: 18px;
+  line-height: 28px;
   opacity: .8;
   margin: 24px 4px 10px;
 }
