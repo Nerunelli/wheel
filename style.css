@@ -197,13 +197,6 @@ body {
   border-radius: 18px;
 }
 
-.btn.ghost {
-  flex: 1;
-  background: rgba(255, 255, 255, .08);
-  color: var(--text);
-  border: 1px solid rgba(255, 255, 255, .12);
-}
-
 /* overlay */
 .winCard {
   position: fixed;

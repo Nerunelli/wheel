@@ -7,7 +7,6 @@ const winIconEl = document.getElementById("winIcon");
 const winBadgeEl = document.getElementById("winBadge");
 const winTitleEl = document.getElementById("winTitle");
 const winDescEl = document.getElementById("winDesc");
-const spinMoreBtn = document.getElementById("spinMore");
 const winOkBtn = document.getElementById("winOk");
 
 const introCardEl = document.getElementById("introCard");
@@ -187,10 +186,6 @@ document.body.classList.add("modalOpen");
 
 
 winOkBtn.addEventListener("click", closeWin);
-spinMoreBtn.addEventListener("click", () => {
-  closeWin();
-  spinBtn.click();
-});
 
 toWheelBtn.addEventListener("click", () => {
   introCardEl.hidden = true;
