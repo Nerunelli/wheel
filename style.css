@@ -13,7 +13,7 @@ html,
 body {
   height: 100%;
   margin: 0;
-  overflow: hidden;
+  /* overflow: hidden; */
   /* ✅ убираем скролл */
   background: radial-gradient(1200px 700px at 30% 10%, #1b2030 0%, var(--bg) 55%);
 }
@@ -202,7 +202,9 @@ body {
   position: fixed;
   inset: 0;
   z-index: 2000;
-  display: grid;
+  display: block;              /* было grid */
+  overflow-y: auto;
+  /* display: grid; */
   place-items: center;
   background: rgba(0, 0, 0, .55);
   backdrop-filter: blur(6px);
