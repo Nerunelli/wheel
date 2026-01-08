@@ -236,7 +236,7 @@ body {
   padding: 26px 18px 18px;
   text-align: center;
   background: #fff9f9;
-  border: 6px solid #df503a;
+  border: 3px solid #df503a;
   color: #111;
 }
 
@@ -317,7 +317,7 @@ body {
   width: min(520px, 100%);
   display: flex;
   gap: 12px;
-  margin-top: 12px;
+  margin-top: 20px;
 }
 
 .winActions .btn {
