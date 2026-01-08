@@ -202,7 +202,8 @@ body {
   position: fixed;
   inset: 0;
   z-index: 2000;
-  display: block;              /* было grid */
+  display: block;
+  /* было grid */
   overflow-y: auto;
   /* display: grid; */
   place-items: center;
@@ -311,6 +312,7 @@ body {
   line-height: 28px;
   opacity: .8;
   margin: 24px 4px 10px;
+  white-space: pre-line;
 }
 
 .winActions {
